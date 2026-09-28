@@ -1,127 +1,14 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Yufeng (Parra) Wang — robotics, mechatronics, mechanism design, and experimental research." />
-  <meta name="theme-color" content="#f7f7f4" />
-  <title>Yufeng Wang | Robotics & Mechatronics</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <header class="site-header" id="top">
-    <div class="nav-wrap">
-      <a class="brand" href="#top" aria-label="Yufeng Wang home">
-        <span class="brand-mark">YW</span>
-        <span>Yufeng Wang</span>
-      </a>
-      <button class="menu-button" aria-label="Toggle navigation" aria-expanded="false">Menu</button>
-      <nav class="nav-links" aria-label="Primary navigation">
-        <a href="#research">Research</a>
-        <a href="#projects">Projects</a>
-        <a href="#about">About</a>
-        <a href="cv.html" target="_blank" rel="noreferrer">Resume</a>
-      </nav>
-    </div>
-  </header>
-  <main>
-    <section class="hero shell">
-      <div class="hero-copy reveal">
-        <p class="eyebrow">Robotics · Mechatronics · Mechanism Design</p>
-        <h1>I build robots to understand how <em>mechanisms become motion.</em></h1>
-        <p class="hero-lede">I am an MSE student in Mechanical Engineering at the University of Pennsylvania, working with Professor Mark Yim. I am interested in how mechanism design, actuation, contact, and control shape the motion a physical robot can actually achieve.</p>
-        <div class="hero-actions">
-          <a class="button primary" href="#research">View research</a>
-          <a class="button" href="cv.html" target="_blank" rel="noreferrer">Resume ↗</a>
-          <a class="text-link" href="https://github.com/parrwnago" target="_blank" rel="noreferrer">GitHub ↗</a>
-        </div>
-      </div>
-      <div class="hero-visual reveal delay-1" aria-label="HAMR/CHUTNI robot research platform">
-        <img src="https://raw.githubusercontent.com/parrwnago/hamr_base/main/img/compa_physical_robot.png" alt="HAMR/CHUTNI mobile robot research platform" />
-        <div class="image-label"><span>Current research</span><strong>Spherical support-caster integration</strong></div>
-      </div>
-    </section>
+<!DOCTYPE html>
 
-    <section class="signal-strip"><div class="shell signal-grid">
-      <div><span class="signal-number">01</span><span>Physical robot design</span></div>
-      <div><span class="signal-number">02</span><span>Modeling & control</span></div>
-      <div><span class="signal-number">03</span><span>Controlled experiments</span></div>
-      <div><span class="signal-number">04</span><span>Iterative prototyping</span></div>
-    </div></section>
-
-    <section class="section shell" id="research">
-      <div class="section-heading reveal">
-        <p class="eyebrow">Current research</p>
-        <h2>Characterizing support-caster behavior in an off-road holonomic robot.</h2>
-        <p>My independent study investigates where ideal robot kinematics stop matching physical behavior—and what the support caster has to do with it.</p>
-      </div>
-
-      <article class="feature-card reveal">
-        <div class="feature-media">
-          <img class="main-image" src="https://raw.githubusercontent.com/parrwnago/hamr_base/main/img/compa_hardware.png" alt="HAMR/CHUTNI hardware platform used for mobility research" />
-          <img class="inset-image" src="https://raw.githubusercontent.com/parrwnago/hamr_base/main/img/mobility_ellipsoid.png" alt="Mobility analysis visualization for the HAMR/CHUTNI platform" />
-        </div>
-        <div class="feature-copy">
-          <div class="meta-row"><span>UPenn · Independent Study</span><span>Aug. 2025–Present</span></div>
-          <h3>HAMR / CHUTNI spherical support caster</h3>
-          <p>I integrated a passive split-spherical caster onto the HAMR/CHUTNI platform, refined its mounting, corrected frame and yaw alignment in the ROS 2 / motion-capture pipeline, and organized repeatable logging and analysis for robot motion.</p>
-          <p>Rather than asking only whether one caster tracks a path better, I am focusing on transient events where mechanism behavior becomes visible: reversal, reorientation, lateral motion, initial caster orientation, slip, and changes in ground contact.</p>
-          <div class="question-box"><span class="question-label">Research question</span><p>Which support-caster behaviors create the largest gap between commanded and realized robot motion?</p></div>
-          <div class="tags" aria-label="Research methods"><span>Mechanical design</span><span>ROS 2</span><span>Vicon / MoCap</span><span>Experiment design</span><span>Data analysis</span></div>
-        </div>
-      </article>
-
-      <div class="research-grid">
-        <article class="mini-card reveal"><span class="mini-index">A</span><h3>Mechanism → hypothesis</h3><p>I use observed hardware behavior to identify specific mechanical effects worth modeling and testing, rather than treating tracking error as a single aggregate metric.</p></article>
-        <article class="mini-card reveal delay-1"><span class="mini-index">B</span><h3>Controlled comparison</h3><p>Current experiments compare spherical and conventional trailing-caster behavior around direction changes, reorientation, rotation, and uneven-terrain contact.</p></article>
-        <article class="mini-card reveal delay-2"><span class="mini-index">C</span><h3>Active spherical caster</h3><p>In parallel, I am designing a standalone actively driven spherical caster. The kinematic derivation is complete and the CAD is in progress toward prototyping and control implementation.</p></article>
-      </div>
-
-      <div class="context-band reveal">
-        <div class="context-image"><img src="https://raw.githubusercontent.com/parrwnago/hamr_base/main/img/Gazebo_OR.png" alt="HAMR/CHUTNI off-road robot simulation context" /></div>
-        <div><p class="eyebrow">Platform context</p><h3>Why caster behavior matters</h3><p>CHUTNI extends a differential-drive / offset-turret architecture to uneven terrain using a rocker suspension and actively stabilized payload. On the physical platform, wheel–terrain interaction, caster alignment, and traction can still limit the motion that the kinematic model predicts.</p></div>
-      </div>
-    </section>
-
-    <section class="section projects-section" id="projects"><div class="shell">
-      <div class="section-heading reveal"><p class="eyebrow">Selected projects</p><h2>Robotics across planning, control, sensing, and hardware.</h2><p>Course projects are included here to show technical range; my current research remains centered on physical robot mechanisms and experimental evaluation.</p></div>
-      <div class="project-grid">
-        <article class="project-card reveal"><div class="project-visual quad-visual" aria-hidden="true"><svg viewBox="0 0 400 240" role="img"><path class="path-line" d="M35 190 C85 125, 115 150, 155 94 S245 72, 285 105 S338 75, 365 40" /><circle cx="35" cy="190" r="6" /><circle cx="365" cy="40" r="6" /><g class="drone" transform="translate(205,95)"><line x1="-42" y1="-28" x2="42" y2="28"/><line x1="-42" y1="28" x2="42" y2="-28"/><circle cx="-45" cy="-30" r="18"/><circle cx="45" cy="30" r="18"/><circle cx="-45" cy="30" r="18"/><circle cx="45" cy="-30" r="18"/><rect x="-18" y="-12" width="36" height="24" rx="5"/></g></svg></div><div class="project-body"><div class="meta-row"><span>MEAM 620</span><span>Spring 2026</span></div><h3>Quadrotor autonomy stack with local replanning</h3><p>Built a full autonomy pipeline combining 3D occupancy-grid A*, waypoint simplification, trajectory generation, SE(3) control, VIO-based state estimation, and receding-horizon local replanning.</p><div class="tags"><span>Python</span><span>A*</span><span>SE(3)</span><span>VIO</span></div></div></article>
-
-        <article class="project-card reveal delay-1"><div class="project-visual rover-visual" aria-hidden="true"><svg viewBox="0 0 400 240" role="img"><path d="M85 165 h230 l-18-66 H103 Z" class="machine-fill"/><circle cx="120" cy="177" r="35"/><circle cx="280" cy="177" r="35"/><rect x="175" y="62" width="50" height="45" rx="6"/><line x1="200" y1="62" x2="200" y2="35"/><path class="sensor-line" d="M200 35 Q245 55 275 35 M200 35 Q155 55 125 35"/></svg></div><div class="project-body"><div class="meta-row"><span>MEAM 5100</span><span>Fall 2025</span></div><h3>Autonomous competition robot</h3><p>Led the physical design of a competition robot, integrating chassis geometry, drivetrain packaging, ramp clearance, sensors, motors, and autonomous wall-following / target-interaction behaviors.</p><div class="tags"><span>Mechanical design</span><span>C++</span><span>ESP32</span><span>Vive</span></div></div></article>
-
-        <article class="project-card reveal"><div class="project-visual arm-visual" aria-hidden="true"><svg viewBox="0 0 400 240" role="img"><rect x="72" y="180" width="105" height="16" rx="6"/><circle cx="124" cy="178" r="18"/><line x1="124" y1="163" x2="170" y2="116"/><circle cx="172" cy="114" r="14"/><line x1="182" y1="105" x2="235" y2="75"/><circle cx="238" cy="74" r="12"/><line x1="246" y1="79" x2="286" y2="106"/><path d="M286 100 l22 12 -22 12 M286 100 l-18 12 18 12"/><rect class="cube" x="300" y="160" width="32" height="32"/><rect class="cube" x="300" y="126" width="32" height="32"/></svg></div><div class="project-body"><div class="meta-row"><span>Intro to Robotics</span><span>Fall 2025</span></div><h3>Autonomous cube-stacking robot arm</h3><p>Built an autonomous manipulation pipeline using camera-based object detection, FK/IK, grasp tuning, dynamic-block capture, and collision-aware planning with potential fields and RRT.</p><div class="tags"><span>Python</span><span>FK/IK</span><span>RRT</span><span>Perception</span></div></div></article>
-
-        <article class="project-card reveal delay-1"><div class="project-visual mems-visual" aria-hidden="true"><svg viewBox="0 0 400 240" role="img"><rect x="115" y="60" width="170" height="120" rx="8" class="mems-mass"/><g class="comb"><path d="M115 78 H65 M115 95 H73 M115 112 H65 M115 129 H73 M115 146 H65 M115 163 H73"/><path d="M285 78 H335 M285 95 H327 M285 112 H335 M285 129 H327 M285 146 H335 M285 163 H327"/></g><path class="spring" d="M165 60 v-22 h18 v-14 h34 v14 h18 v22 M165 180 v22 h18 v14 h34 v-14 h18 v-22"/><line class="axis" x1="200" y1="84" x2="200" y2="154"/><path class="arrow" d="M200 154 l-8-13 h16 Z"/></svg></div><div class="project-body"><div class="meta-row"><span>ESE / MEAM 5290</span><span>Spring 2026</span></div><h3>MEMS vibratory gyroscope</h3><p>Designed a mode-matched vibratory gyroscope using comb-drive actuation and differential capacitive sensing, with an SOI / DRIE-oriented fabrication process and performance calculations.</p><div class="tags"><span>MEMS</span><span>SOI</span><span>DRIE</span><span>MATLAB</span></div></div></article>
-      </div>
-    </div></section>
-
-    <section class="section shell" id="about">
-      <div class="about-grid">
-        <div class="section-heading reveal"><p class="eyebrow">About</p><h2>Mechanical engineering, with a growing focus on embodied robotics.</h2><p>I enjoy the gap between a mechanism that works on paper and a robot that works in the world. My long-term interests sit at the intersection of mechanism and actuation design, robot mobility, modeling and control, and experiments that reveal which design choices actually matter.</p></div>
-        <div class="timeline reveal delay-1">
-          <div class="timeline-item"><span class="timeline-date">2025–2027</span><div><h3>University of Pennsylvania</h3><p>MSE, Mechanical Engineering · GPA 4.0/4.0</p></div></div>
-          <div class="timeline-item"><span class="timeline-date">2023–2025</span><div><h3>University of Pittsburgh</h3><p>BSE, Mechanical Engineering · GPA 3.895/4.0</p></div></div>
-          <div class="timeline-item"><span class="timeline-date">2024</span><div><h3>Chenzhi Technology</h3><p>Engineer Assistant · Steering System Design</p></div></div>
-        </div>
-      </div>
-      <div class="skills-panel reveal">
-        <div><span class="skills-label">Robotics</span><p>ROS 2 · kinematics · planning · control · VIO · motion capture · experimental evaluation</p></div>
-        <div><span class="skills-label">Build</span><p>SolidWorks · CATIA V5 · mechanical integration · prototyping · drivetrain / mechanism design</p></div>
-        <div><span class="skills-label">Code & analysis</span><p>Python · C++ · MATLAB · Java · ANSYS · Excel</p></div>
-      </div>
-    </section>
-
-    <section class="contact-section" id="contact"><div class="shell contact-wrap reveal">
-      <p class="eyebrow">Contact</p><h2>Interested in robotics, mechanisms, and physical experimentation.</h2><p>I am currently exploring PhD opportunities beginning in Fall 2027.</p>
-      <div class="contact-links"><a class="button primary" href="mailto:paw023@engineering.upenn.edu">paw023@engineering.upenn.edu</a><a class="button dark" href="https://github.com/parrwnago" target="_blank" rel="noreferrer">GitHub ↗</a><a class="button dark" href="cv.html" target="_blank" rel="noreferrer">Resume ↗</a></div>
-    </div></section>
-  </main>
-
-  <footer><div class="shell footer-wrap"><span>© <span id="year"></span> Yufeng Wang</span><span>Built for GitHub Pages.</span></div></footer>
-  <script src="script.js"></script>
-</body>
-</html>
+<html data-theme="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><meta content="Yufeng (Parra) Wang is a Penn mechanical engineering graduate student working on robot mobility, spherical casters, mechanisms, and physical experiments." name="description"/><meta content="#12181e" name="theme-color"/><meta content="dark light" name="color-scheme"/><title>Robotics, mechanisms, and experiments — Yufeng Wang</title><link href="https://parrwnago.github.io/" rel="canonical"/><meta content="website" property="og:type"/><meta content="Yufeng Wang" property="og:site_name"/><meta content="Robotics, mechanisms, and experiments — Yufeng Wang" property="og:title"/><meta content="Yufeng (Parra) Wang is a Penn mechanical engineering graduate student working on robot mobility, spherical casters, mechanisms, and physical experiments." property="og:description"/><meta content="https://parrwnago.github.io/" property="og:url"/><meta content="https://parrwnago.github.io/assets/images/social-preview.jpg" property="og:image"/><meta content="The real split-spherical support caster used in HAMR experiments" property="og:image:alt"/><meta content="summary_large_image" name="twitter:card"/><link href="assets/favicon.svg" rel="icon" type="image/svg+xml"/><script src="theme-init.js"></script><link href="styles.css" rel="stylesheet"/></head><body>
+<a class="skip-link" href="#main">Skip to content</a><header class="site-header"><div class="shell header-inner"><a class="brand" href="index.html">Yufeng Wang<span>Mechanical engineering · University of Pennsylvania</span></a><nav aria-label="Main navigation" class="primary-nav"><a aria-current="page" href="index.html#work">Work</a><a href="index.html#about">About</a><a href="cv.html">CV</a><a href="mailto:paw023@engineering.upenn.edu">Email ↗</a></nav><div aria-label="Display preferences" class="display-controls" role="group"><button aria-label="Switch to light theme" class="theme-toggle" data-theme-toggle="" hidden="" title="Switch to light theme" type="button">
+<svg aria-hidden="true" fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" viewbox="0 0 24 24" width="14">
+<g data-theme-icon="light"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"></path></g>
+<path d="M20.4 14A9 9 0 0 1 10 3.6 9 9 0 1 0 20.4 14Z" data-theme-icon="dark"></path></svg><span data-theme-label="">Light</span></button><button aria-label="Decorative page motion" aria-pressed="false" class="motion-toggle" data-motion-toggle="" hidden="" type="button">Motion: <span data-motion-label="">off</span></button></div></div></header>
+<main id="main"><section class="hero shell"><div class="hero-copy"><p class="kicker">Robotics / mechanisms / experiments</p><h1>Yufeng Wang</h1><p class="given-name">I also go by Parra.</p><p>I’m a mechanical engineering master’s student at the University of Pennsylvania, working with Professor Mark Yim on robot mobility.</p><p>I design and test mechanisms, build motion-control systems, and study what happens at the contact between a robot and the ground.</p><div class="link-row"><a href="cv.html">Curriculum vitae</a><a href="mailto:paw023@engineering.upenn.edu">Email ↗</a><a href="https://github.com/parrwnago" rel="noopener noreferrer" target="_blank">GitHub ↗</a></div><div class="availability">Exploring PhD opportunities for Fall 2027.</div></div><figure class="hero-media"><a href="research/hamr.html#vision"><img alt="White split-spherical caster with red and green surface markers, mounted on the real HAMR robot" class="" decoding="async" fetchpriority="high" height="900" loading="eager" src="assets/images/caster-on-robot.webp" width="1600"/><span class="media-hint">See the caster in motion ↗</span></a><figcaption>The split-spherical support caster used in my current experiments.</figcaption></figure></section>
+<section class="section shell" id="work"><div class="section-top"><h2>Current research</h2><p>Mechanical design, motion control, and physical testing.</p></div><div class="research-grid"><article class="work-item"><a class="work-image" href="research/hamr.html"><img alt="Two real camera views of the spherical caster with an orientation-estimation overlay" class="" decoding="async" height="900" loading="lazy" src="assets/images/caster-two-view.webp" width="1600"/></a><div class="work-meta">HAMR / CHUTNI · Independent study · 2025–present</div><h3><a href="research/hamr.html">Support-caster behavior</a></h3><p>Integrating a split-spherical caster, studying its rolling and contact behavior, and building encoder instrumentation for real-time orientation and angular-velocity measurements.</p><a class="text-link" href="research/hamr.html">Mechanism, experiments, and kinematics →</a><a class="text-link trial-jump" href="research/hamr.html#trajectory-tests">Caster trials + trajectory deviation →</a><a class="secondary-project-link" href="research/hamr.html#platform-tests">Watch HAMR platform tests ↗</a><a class="research-update" href="research/hamr.html#encoder">
+<img alt="Cutaway of the encoder-integrated passive caster currently being built" decoding="async" height="674" loading="lazy" src="assets/images/encoder-integrated-caster.webp" width="683"/>
+<span><span class="update-label">Current build</span><strong>Encoder-integrated caster</strong><span>Orientation and angular velocity ↗</span></span>
+</a></article><article class="work-item"><a class="work-image contain" href="research/active-spherical-caster.html"><img alt="Original CAD section of the active spherical caster, showing its internal packaging and circumferential mechanism" class="" decoding="async" height="816" loading="lazy" src="assets/images/active-caster-section.webp" width="1025"/></a><div class="work-meta">Mechanism design · Ongoing</div><h3><a href="research/active-spherical-caster.html">Active spherical caster</a></h3><p>A standalone, actively driven caster design. The work moves from passive contact behavior toward a mechanism whose motion can be commanded.</p><a class="text-link" href="research/active-spherical-caster.html">CAD, design context, and model →</a></article></div></section>
+<section class="section shell" id="projects"><div class="section-top"><h2>Selected engineering projects</h2><p>Earlier work in hardware, planning, manipulation, and sensing.</p></div><div class="projects-layout"><article class="work-item competition-preview"><a class="work-image" href="projects/mechatronics.html"><img alt="The completed three-layer MEAM 5100 competition robot on a workbench" class="" decoding="async" height="1200" loading="lazy" src="assets/images/competition-robot.webp" width="1600"/></a><div class="work-meta">MEAM 5100 · Fall 2025</div><h3><a href="projects/mechatronics.html">Autonomous competition robot</a></h3><p>Chassis design, compliant caster suspension, sensor packaging, and control integration for a robot that navigates ramps and interacts with field targets.</p><a class="text-link" href="projects/mechatronics.html">Hardware, iterations, and demonstrations →</a></article><div class="project-index"><a class="project-row project-row-with-image" href="projects/senior-design.html"><img alt="Senior-design electromagnetic actuator prototype" class="" decoding="async" height="551" loading="lazy" src="assets/images/senior-actuator-prototype.webp" width="558"/><div class="project-row-copy"><div class="work-meta">Senior design · Pittsburgh · Spring 2025</div><h3>Electromagnetic fish-like actuator</h3><p>Compliant mechanism design, custom-wound coils, a working bench prototype, and force/torque testing.</p></div><span aria-hidden="true" class="arrow">↗</span></a><a class="project-row" href="projects/quadrotor.html"><div class="work-meta">MEAM 6200 · Spring 2026</div><h3>Quadrotor autonomy</h3><p>A* planning, trajectory generation, SE(3) control, visual–inertial estimation, and a local-replanning extension.</p><span aria-hidden="true" class="arrow">↗</span></a><a class="project-row project-row-with-image" href="projects/manipulation.html"><img alt="Panda arm in the cube-stacking simulation" class="" decoding="async" height="661" loading="lazy" src="assets/images/manipulation-dynamic-simulation.webp" width="1285"/><div class="project-row-copy"><div class="work-meta">MEAM 5200 · Fall 2025</div><h3>Autonomous cube stacking</h3><p>Simulation and hardware videos, static pick-and-place, timed capture of moving blocks, and competition results.</p></div><span aria-hidden="true" class="arrow">↗</span></a><a class="project-row" href="projects/mems.html"><div class="work-meta">ESE / MEAM 5290 · Spring 2026</div><h3>MEMS vibratory gyroscope</h3><p>Electromechanical design and a proposed SOI fabrication process. Calculated performance, not fabricated hardware.</p><span aria-hidden="true" class="arrow">↗</span></a></div></div></section>
+<section class="section shell" id="about"><div class="about-grid"><div><h2>About</h2><p>My background is in mechanical engineering. I’m most interested in robotics problems where the mechanism, the controller, and the experiment have to be developed together.</p><p>Before Penn, I studied at the University of Pittsburgh and Sichuan University. I also worked on steering-system housing design and assembly at Chenzhi Technology.</p><p class="about-contact">I’m exploring PhD research in robot mechanisms, mobility, and mechatronics for Fall 2027.</p><div class="link-row"><a href="mailto:paw023@engineering.upenn.edu">paw023@engineering.upenn.edu</a></div></div><dl class="timeline"><div><dt>University of Pennsylvania</dt><dd>MSE, Mechanical Engineering<br/>2025–2027, expected · Research with Prof. Mark Yim</dd></div><div><dt>University of Pittsburgh</dt><dd>BSE, Mechanical Engineering · 2023–2025</dd></div><div><dt>Sichuan University</dt><dd>Mechanical engineering study · 2021–2023</dd></div><div><dt>Chenzhi Technology</dt><dd>Engineer Assistant, Steering System Design · Summer 2024</dd></div></dl></div></section></main><footer class="site-footer"><div class="shell footer-inner"><span>© 2026 Yufeng (Parra) Wang</span><span><a href="mailto:paw023@engineering.upenn.edu">Email</a>   /   <a href="https://github.com/parrwnago" rel="noopener noreferrer" target="_blank">GitHub</a>   /   Updated September 2026</span></div></footer><dialog aria-labelledby="image-viewer-title" class="lightbox" id="image-viewer"><div class="lightbox-toolbar"><span id="image-viewer-title">Project image</span><button aria-label="Close enlarged image" class="lightbox-close" type="button">Close ×</button></div><img alt="Enlarged project image"/><p class="lightbox-caption"></p></dialog><script defer="" src="script.js"></script></body></html>
