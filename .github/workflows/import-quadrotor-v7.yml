@@ -1,0 +1,72 @@
+name: Import report-based quadrotor page
+on:
+  push:
+    branches: [quadrotor-report-redesign-v7]
+    paths: [.github/workflows/import-quadrotor-v7.yml]
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: quadrotor-report-redesign-v7
+      - name: Import exact approved files
+        run: |
+          python3 - <<'PY'
+          import hashlib, io, pathlib, subprocess, urllib.request, zipfile
+          expected = {
+            'index.html': '69d1bfcca240efea86cff33db562bed34345747538a23a246870917140e9a943',
+            'projects/quadrotor.html': '764d8223b0433a007920402f9e3f4cbdb5f6cc7506e1404d03157eb9921623a5',
+            'projects/quadrotor.css': '1f7b1f0651532205e7d50277b7b8ef2f912484efca4f8268de4f58e0350dde6c',
+            'assets/images/quadrotor-hardware-maze-1.webp': '33fbcad45fa88f511f8bef13dddfeb285b08427801d36aa5aa53052b0cd1a83f',
+            'assets/images/quadrotor-hardware-maze-2.webp': '014996c7f82b2cd3e8a8b4d83bfca685742eb4421af5108fa987c9dac921afcf',
+            'assets/images/quadrotor-hardware-maze-3.webp': '30961cebeed2a17fbfee030bfecf962939709cbe8f3492bccb2a3435cf4e2e5a',
+            'assets/images/quadrotor-hardware-tracking.webp': 'a5eb94833f2687e7b62caea0ae9dee196dbce49d0267361bc26c274e4e8a8bdc',
+            'assets/images/quadrotor-hardware-step.webp': 'aa22219de904743625111b52125e5b4aa71171364957b94bda5fcd6fb32274dc',
+            'assets/images/quadrotor-vio-maze.webp': '508e02ea44b96b2906d9ec8e61b03d1ccb7e2fab9861d11bf672d092477124ec',
+            'assets/docs/meam6200-hardware-flight-report.pdf': '581cbbf1958466883f6628a28050798bdf45f046acfb4c413a8e4078112f663f',
+            'assets/docs/meam6200-project3-report.pdf': 'd07c63e3d3e9ec70968588320addd573dc0df610b65bbd41d1763aa9a67d1a4b'
+          }
+          for path, sha in {'index.html':'83fa2c96b55a42cc481ff7a1d7084b37e4da6b4b', 'projects/quadrotor.html':'3bc8fba3dd87fd29e3f818b83901c1e2a490bb52'}.items():
+              actual = subprocess.check_output(['git','hash-object',path],text=True).strip()
+              if actual != sha:
+                  raise RuntimeError('Base file changed; refusing to overwrite: '+path)
+          tracked = subprocess.check_output(['git','ls-files','-z'],text=True).strip('\0').split('\0')
+          before = {p: hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest() for p in tracked if p not in expected}
+          url = 'https://drive.usercontent.google.com/download?id=1DL3PKoJdPusDn8f2hMlvWloqcFQumMLa&export=download&confirm=t'
+          with urllib.request.urlopen(url,timeout=60) as response:
+              data = response.read(5_000_001)
+          if hashlib.sha256(data).hexdigest() != '3a00cc4a314893574054ed9e30c8fbd54cd778b4e29a393d066d10ddcebc3271':
+              raise RuntimeError('Package checksum mismatch. No project files changed.')
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+              if len(z.namelist()) != 11 or set(z.namelist()) != set(expected):
+                  raise RuntimeError('Unexpected package paths.')
+              if sum(i.file_size for i in z.infolist()) > 5_000_000:
+                  raise RuntimeError('Unexpected package size.')
+              contents = {p:z.read(p) for p in expected}
+              for p, value in contents.items():
+                  if hashlib.sha256(value).hexdigest() != expected[p]:
+                      raise RuntimeError('Asset checksum mismatch: '+p)
+              for p, value in contents.items():
+                  path = pathlib.Path(p)
+                  path.parent.mkdir(parents=True,exist_ok=True)
+                  path.write_bytes(value)
+          for p, sha in before.items():
+              assert hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest() == sha, p
+          quad = pathlib.Path('projects/quadrotor.html').read_text()
+          assert '<video' not in quad and 'quadrotor_reconstruction' not in quad
+          assert len(list(pathlib.Path('assets/video').glob('*.mp4'))) == 8
+          print('VERIFIED: 11 report-based update files; all unrelated files and eight videos unchanged.')
+          PY
+      - name: Commit to staging branch only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html projects/quadrotor.html projects/quadrotor.css assets/images/quadrotor-* assets/docs/meam6200-*
+          git commit -m 'Redesign quadrotor page around original hardware and simulation reports'
+          git push origin HEAD:refs/heads/quadrotor-report-redesign-v7
+          git rev-parse HEAD
+          git rev-parse HEAD^{tree}
