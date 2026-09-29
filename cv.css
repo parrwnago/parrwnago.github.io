@@ -1,0 +1,53 @@
+/* CV route only: actual résumé sheets, not a second editorial résumé. */
+.resume-page #main { max-width:1080px; padding-top:2.7rem; padding-bottom:3rem; }
+.resume-heading { display:flex; justify-content:space-between; align-items:flex-end; gap:2rem; margin-bottom:1.8rem; }
+.resume-heading .kicker { margin:0 0 .35rem; }
+.resume-heading h1 { font-size:clamp(2.5rem,5vw,4rem); line-height:1.1; margin:0 0 .65rem; }
+.resume-heading p:last-child { margin:0; color:var(--muted); }
+.resume-actions { display:flex; flex-wrap:wrap; gap:1rem; align-items:center; padding-bottom:.2rem; font-size:.92rem; }
+.resume-actions a { white-space:nowrap; }
+.resume-actions .resume-primary { border:1px solid var(--accent); padding:.65rem .9rem; text-decoration:none; }
+.resume-actions .print-button { padding:.65rem .9rem; font-size:.92rem; }
+.resume-document { border:1px solid var(--line); background:var(--surface); }
+.resume-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.8rem; min-height:3.8rem; padding:.75rem 1rem; border-bottom:1px solid var(--line); font-size:.9rem; }
+.resume-page-count { color:var(--muted); }
+.resume-zoom { display:flex; gap:.35rem; align-items:center; }
+.resume-zoom[hidden] { display:none; }
+.resume-zoom button { border:1px solid var(--line); background:transparent; color:var(--ink); font:inherit; min-width:2.1rem; min-height:2.1rem; padding:.25rem .6rem; cursor:pointer; }
+.resume-zoom button:disabled { opacity:.4; cursor:default; }
+.resume-zoom button:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
+.resume-zoom output { min-width:3.4rem; text-align:center; font-variant-numeric:tabular-nums; }
+.resume-viewport { overflow-x:auto; padding:1rem; background:rgba(0,0,0,.16); }
+.resume-sheets { width:100%; margin:0 auto; display:flex; flex-direction:column; gap:1rem; }
+.resume-sheet { margin:0; background:white; box-shadow:0 2px 8px rgba(0,0,0,.12); }
+.resume-sheet img { display:block; width:100%; height:auto; max-width:none; border:0; background:#fff; }
+.resume-text-version { margin-top:1.3rem; border-top:1px solid var(--line); padding-top:1rem; }
+.resume-text-version summary { color:var(--accent); cursor:pointer; width:fit-content; }
+.resume-transcript { max-width:60rem; }
+.resume-transcript h2 { font-size:1.2rem; margin-top:1.5rem; }
+.resume-transcript pre { white-space:pre-wrap; overflow-wrap:anywhere; font:inherit; line-height:1.7; }
+.resume-page .sr-only { position:absolute!important; width:1px!important; height:1px!important; padding:0!important; margin:-1px!important; overflow:hidden!important; clip:rect(0,0,0,0)!important; white-space:nowrap!important; border:0!important; }
+@media(max-width:760px) {
+ .resume-page #main { padding-top:1.8rem; }
+ .resume-heading { display:block; }
+ .resume-actions { margin-top:1.3rem; gap:.8rem; font-size:.875rem; }
+ .resume-actions .print-button { font-size:.875rem; }
+ .resume-toolbar { padding:.65rem .75rem; }
+ .resume-viewport { padding:.5rem; }
+ .resume-sheets { gap:.5rem; }
+}
+@media(max-width:400px) {
+ .resume-toolbar { justify-content:center; }
+ .resume-toolbar > span { width:100%; text-align:center; }
+ .resume-actions { gap:.7rem; }
+}
+@media print {
+ @page { size:letter; margin:0; }
+ html, body.resume-page { background:#fff!important; color:#000!important; margin:0!important; padding:0!important; }
+ .resume-page .site-header,.resume-page .site-footer,.resume-heading,.resume-toolbar,.resume-text-version,.skip-link { display:none!important; }
+ .resume-page #main,.resume-document,.resume-viewport,.resume-sheets { width:100%!important; max-width:none!important; height:auto!important; margin:0!important; padding:0!important; border:0!important; overflow:visible!important; background:#fff!important; box-shadow:none!important; }
+ .resume-sheets { display:block!important; }
+ .resume-sheet { width:8.5in!important; height:11in!important; margin:0!important; padding:0!important; break-inside:avoid; break-after:page; box-shadow:none!important; }
+ .resume-sheet:last-child { break-after:auto; }
+ .resume-sheet img { width:8.5in!important; height:11in!important; max-width:none!important; }
+}
