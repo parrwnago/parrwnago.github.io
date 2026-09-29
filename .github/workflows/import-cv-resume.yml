@@ -1,0 +1,65 @@
+name: Import actual resume into CV page
+on:
+  push:
+    branches: [cv-actual-resume]
+    paths: [.github/workflows/import-cv-resume.yml]
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: cv-actual-resume
+      - name: Verify and import the six approved files
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, io, pathlib, subprocess, urllib.request, zipfile
+          from html.parser import HTMLParser
+          expected = {
+            'cv.html': 'bf991f4046f6b13e6dd840375202737cc9f580816d01b8b3353894472f0e3a6e',
+            'cv.css': '335038eb192d736fa2eed34c6b4c266c386dcd89fd8caa7f97ee019391081db9',
+            'cv.js': '7a80e10e2e6c266092f5d7fe41923c20a8a2235cc64b59ffa76774919c7b5556',
+            'assets/docs/Yufeng-Wang-Resume.pdf': 'ec8c390a924f3e63275d3e15a868c7b8fdaa84a5de307c5df575f81155577a0b',
+            'assets/images/resume-page-1.webp': '06c52f3099153cf491709075504331e1a949ea53b22ac5e95a4790eb1588bf48',
+            'assets/images/resume-page-2.webp': '22536142e89b4f23934e0f4d154d5ea2ddc3a4c939b49f1f2e515668a7b7caf0'
+          }
+          original = subprocess.check_output(['git','hash-object','cv.html'],text=True).strip()
+          assert original == '9aaf4562b7a3b80eb6f98e3783e7c23206973e0e', 'CV source changed; reconcile before importing.'
+          url = 'https://drive.usercontent.google.com/download?id=1HW2YkOeGD9Xf3FQC9mqVDUlm8cc_yheE&export=download&confirm=t'
+          req = urllib.request.Request(url, headers={'User-Agent':'Portfolio-Publishing'})
+          with urllib.request.urlopen(req, timeout=60) as r:
+              data = r.read(2_000_001)
+          assert len(data) < 2_000_000
+          assert hashlib.sha256(data).hexdigest() == '90938af9edef2fb3cf05f3cab38dd2114661794d24f24a09e00807c2a31353a2', 'Package checksum mismatch.'
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+              assert len(z.namelist()) == 6 and set(z.namelist()) == set(expected)
+              payload = {name:z.read(name) for name in expected}
+              for name, content in payload.items():
+                  assert hashlib.sha256(content).hexdigest() == expected[name], name
+              page = payload['cv.html'].decode()
+              assert page.count('class="resume-sheet"') == 2
+              assert '519-2708' not in page and '19104' not in page
+              assert 'parrwnago.github.io' in page
+              class CheckLinks(HTMLParser):
+                  def handle_starttag(self, tag, attrs):
+                      a = dict(attrs)
+                      if tag == 'a' and 'Yufeng-Wang-Resume.pdf' in a.get('href',''):
+                          assert a.get('target','_self') == '_self', 'Resume must not open a different tab.'
+              CheckLinks().feed(page)
+              for name, content in payload.items():
+                  path = pathlib.Path(name)
+                  path.parent.mkdir(parents=True,exist_ok=True)
+                  path.write_bytes(content)
+          print('VERIFIED: six approved files. Two original resume pages, same-tab PDF, public contact line.')
+          PY
+      - name: Commit to staging only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- cv.html cv.css cv.js assets/docs/Yufeng-Wang-Resume.pdf assets/images/resume-page-1.webp assets/images/resume-page-2.webp
+          git commit -m 'Show the actual two-page resume directly in the CV tab'
+          git push origin HEAD:refs/heads/cv-actual-resume
