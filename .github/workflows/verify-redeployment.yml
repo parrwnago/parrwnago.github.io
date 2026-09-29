@@ -1,0 +1,85 @@
+name: Verify restored website
+on:
+  push:
+    branches: [verify-pages-redeploy-821b6ab]
+    paths: [.github/workflows/verify-redeployment.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Verify published files without modifying the repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import concurrent.futures
+          import hashlib
+          import json
+          import os
+          import pathlib
+          import time
+          import urllib.parse
+          import urllib.request
+
+          commit = '821b6ab41aba8ee7343ebd1a9ffc5c25c525cad9'
+          base = 'https://parrwnago.github.io/'
+          api = 'https://api.github.com/repos/parrwnago/parrwnago.github.io/git/trees/' + commit + '?recursive=1'
+          request = urllib.request.Request(api, headers={
+              'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+              'Accept': 'application/vnd.github+json',
+              'User-Agent': 'Portfolio-Redeployment-Check'})
+          with urllib.request.urlopen(request, timeout=30) as response:
+              tree = json.load(response)
+          assert not tree.get('truncated'), 'Incomplete repository file listing'
+          suffixes = {'.html', '.css', '.js', '.pdf', '.svg', '.webp', '.png', '.jpg', '.jpeg', '.mp4', '.xml', '.txt', '.ico'}
+          files = {e['path']: e for e in tree['tree']
+                   if e['type'] == 'blob' and not e['path'].startswith('.')
+                   and pathlib.PurePosixPath(e['path']).suffix.lower() in suffixes}
+          assert {'index.html', 'cv.html', 'projects/quadrotor.html', 'assets/docs/Yufeng-Wang-Resume.pdf'} <= files.keys()
+          checks = [(p, e) for p, e in files.items()] + [('', files['index.html'])]
+
+          def verify(item):
+              path, expected = item
+              url = base + urllib.parse.quote(path) + '?redeploy=' + commit[:7]
+              try:
+                  req = urllib.request.Request(url, headers={'Cache-Control': 'no-cache', 'User-Agent': 'Portfolio-Redeployment-Check'})
+                  digest = hashlib.sha1()
+                  digest.update(('blob ' + str(expected['size']) + '\0').encode())
+                  size = 0
+                  with urllib.request.urlopen(req, timeout=40) as response:
+                      if response.status != 200:
+                          return item, 'HTTP ' + str(response.status)
+                      while True:
+                          chunk = response.read(1024 * 1024)
+                          if not chunk:
+                              break
+                          size += len(chunk)
+                          digest.update(chunk)
+                  if size != expected['size'] or digest.hexdigest() != expected['sha']:
+                      return item, 'Live content differs from redeployed commit'
+                  return item, None
+              except Exception as exc:
+                  return item, str(exc)
+
+          pending = checks
+          for attempt in range(5):
+              with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+                  results = list(pool.map(verify, pending))
+              failures = [(item, error) for item, error in results if error]
+              if not failures:
+                  break
+              print('Retrying:', [(item[0] or '/', error) for item, error in failures])
+              pending = [item for item, error in failures]
+              if attempt < 4:
+                  time.sleep(15)
+          assert not failures, 'Some published files failed verification'
+          print('LIVE_VERIFIED: ' + str(len(files)) + ' public files and the root homepage exactly match commit ' + commit)
+          print('HTML_PAGES: ' + str(sum(p.endswith('.html') for p in files)))
+          print('PROJECT_VIDEOS: ' + str(sum(p.endswith('.mp4') for p in files)))
+          print('CV_AND_QUADROTOR: verified current published versions')
+          print('PUBLIC_URL: ' + base)
+          PY
