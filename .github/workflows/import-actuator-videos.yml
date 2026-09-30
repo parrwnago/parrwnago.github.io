@@ -1,0 +1,101 @@
+name: Import actuator bench videos
+on:
+  push:
+    branches: [publish-actuator-videos-20260930]
+    paths: [.github/workflows/import-actuator-videos.yml]
+permissions:
+  contents: write
+concurrency:
+  group: import-actuator-videos
+  cancel-in-progress: false
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: publish-actuator-videos-20260930
+      - name: Import only the verified actuator page and media
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, http.cookiejar, pathlib, shutil, subprocess, tempfile, urllib.parse, urllib.request, zipfile
+          from html.parser import HTMLParser
+          manifest = {
+              'assets/css/actuator-media.css': 'bf7d687c730cee18c76d08015b85b7316332afb59173bd8309a9748ea9ecb194',
+              'assets/images/senior-actuator-motion.webp': '0625ac321692ff950e8b35b7ba369b953de74e4a3235ed1a8c7750cbab355319',
+              'assets/images/senior-bench-setup.webp': '86ed1c5915eb01678acb20d97f16da73bd332abee877e766e142006eb103c6d7',
+              'assets/images/senior-force-check.webp': '1f79551e8bdb32ecbd1b04298d7fdebb1d5f38c6b20aca0d46d4d1f5c27e19a8',
+              'assets/images/senior-position-control.webp': '1d86b8aa4618a7f4c1e819417fc85301b0d0801f833005dcb435bca84f80b868',
+              'assets/video/senior-actuator-motion.mp4': 'c3926a87701fc93b56745a2127bef9ddb00e055537114b1bfd653f01c0e2ea49',
+              'assets/video/senior-bench-setup.mp4': 'ca5af064e202d66fbd32b6a45fc18e47564a7f357dac69ba9a381b3fa01f3c4f',
+              'assets/video/senior-force-check.mp4': '23ece962ab64cd095e995a83e13c9498b564b8dd1bfe01a5413180d81126aac8',
+              'assets/video/senior-position-control.mp4': '75878d6516f4203f338da8aa62e9a72ab4ab3ba8a254be59ed5aa18a34c90e35',
+              'projects/senior-design.html': '3dc9669e0fb568e6269174b5116767108dc89c242cdeca354007b298544d08f5'
+          }
+          page = pathlib.Path('projects/senior-design.html')
+          assert subprocess.check_output(['git','hash-object',str(page)]).decode().strip() == 'cfad3978a2939509a73fde92037dd04545b3b64e', 'Senior-design page changed since review'
+          opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+          url = 'https://drive.usercontent.google.com/download?id=1jiJpzHXzM4_fKbzip6OENX-DILX5iEcX&export=download&confirm=t'
+          class Form(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.action = None; self.fields = {}
+              def handle_starttag(self, tag, attrs):
+                  a = dict(attrs)
+                  if tag == 'form' and a.get('id') == 'download-form': self.action = a.get('action')
+                  if tag == 'input' and a.get('type') == 'hidden' and a.get('name'): self.fields[a['name']] = a.get('value','')
+          with tempfile.TemporaryDirectory() as tmp:
+              archive = pathlib.Path(tmp)/'actuator.zip'
+              for attempt in range(3):
+                  with opener.open(urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0'}), timeout=90) as response, archive.open('wb') as out:
+                      shutil.copyfileobj(response,out)
+                  if zipfile.is_zipfile(archive): break
+                  f = Form(); f.feed(archive.read_text(errors='replace'))
+                  assert f.action and urllib.parse.urlparse(f.action).hostname in ('drive.google.com','drive.usercontent.google.com'), 'Transfer not downloadable'
+                  url = f.action + '?' + urllib.parse.urlencode(f.fields)
+              assert hashlib.sha256(archive.read_bytes()).hexdigest() == '5c78ed0ac3493a0c3cf7395f7502af68bc3c63f54f5658292f9d0387c3a2edb7', 'Archive checksum mismatch'
+              with zipfile.ZipFile(archive) as z:
+                  assert len(z.infolist()) == 10 and set(z.namelist()) == set(manifest), 'Unexpected package entries'
+                  assert sum(i.file_size for i in z.infolist()) < 20000000, 'Unexpected package size'
+                  data = {name:z.read(name) for name in manifest}
+                  for name, blob in data.items():
+                      assert hashlib.sha256(blob).hexdigest() == manifest[name], 'File mismatch: ' + name
+                  for name, blob in data.items():
+                      p = pathlib.Path(name); p.parent.mkdir(parents=True,exist_ok=True); p.write_bytes(blob)
+          class Page(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.videos=[]; self.sources=[]; self.refs=[]; self.ids=set()
+              def handle_starttag(self,tag,attrs):
+                  a=dict(attrs)
+                  if 'id' in a:self.ids.add(a['id'])
+                  if tag=='video':self.videos.append(a)
+                  if tag=='source':self.sources.append(a.get('src',''))
+                  for key in ('src','href','poster'):
+                      if a.get(key):self.refs.append(a[key])
+          doc=Page();doc.feed(page.read_text())
+          assert len(doc.videos)==4 and all('controls' in v and 'autoplay' not in v for v in doc.videos)
+          assert len(doc.sources)==4 and doc.sources[0].endswith('senior-position-control.mp4')
+          for ref in doc.refs:
+              u=urllib.parse.urlsplit(ref)
+              if u.scheme or u.netloc:continue
+              if not u.path:
+                  if u.fragment:assert u.fragment in doc.ids, 'Missing anchor ' + ref
+                  continue
+              p=(page.parent/urllib.parse.unquote(u.path)).resolve()
+              assert p.is_file(), 'Missing local asset: ' + ref
+          assert len(list(pathlib.Path('assets/video').glob('*.mp4')))==12
+          assert '<video' not in pathlib.Path('projects/quadrotor.html').read_text()
+          subprocess.run(['git','add','--',*manifest],check=True)
+          staged=set(subprocess.check_output(['git','diff','--cached','--name-only']).decode().splitlines())
+          assert staged==set(manifest), 'Unexpected staged files'
+          print('VERIFIED: ten actuator-specific files; four video players; no autoplay; position control first.')
+          print('PRESERVED: homepage, quadrotor, CV, existing eight videos, and all unrelated files.')
+          PY
+      - name: Commit to staging branch only
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Add four original actuator videos to senior-design page'
+          git push origin HEAD:refs/heads/publish-actuator-videos-20260930
