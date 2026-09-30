@@ -1,0 +1,74 @@
+name: Verify published actuator videos
+on:
+  push:
+    branches: [publish-actuator-videos-20260930]
+    paths: [.github/workflows/verify-actuator-videos.yml]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify live website and all original videos
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import concurrent.futures, hashlib, json, os, pathlib, time, urllib.parse, urllib.request
+          from html.parser import HTMLParser
+          repo='parrwnago/parrwnago.github.io'
+          before='821b6ab41aba8ee7343ebd1a9ffc5c25c525cad9'
+          commit='eafd94feff9f5aa6856f85476eb528b24dfc30b8'
+          base='https://parrwnago.github.io/'
+          def tree(sha):
+              req=urllib.request.Request('https://api.github.com/repos/'+repo+'/git/trees/'+sha+'?recursive=1',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','User-Agent':'Actuator-Deployment-Check'})
+              with urllib.request.urlopen(req,timeout=30) as r:doc=json.load(r)
+              assert not doc.get('truncated')
+              return {e['path']:e for e in doc['tree'] if e['type']=='blob'}
+          old,new=tree(before),tree(commit)
+          expected_changed={'assets/css/actuator-media.css','projects/senior-design.html'}
+          for name in ('senior-actuator-motion','senior-bench-setup','senior-force-check','senior-position-control'):
+              expected_changed.update({'assets/images/'+name+'.webp','assets/video/'+name+'.mp4'})
+          changed={p for p in old.keys()|new.keys() if old.get(p,{}).get('sha')!=new.get(p,{}).get('sha')}
+          assert changed==expected_changed, 'Unexpected production changes'
+          suffixes={'.html','.css','.js','.pdf','.svg','.webp','.png','.jpg','.jpeg','.mp4','.xml','.txt','.ico'}
+          files={p:e for p,e in new.items() if not p.startswith('.') and pathlib.PurePosixPath(p).suffix in suffixes}
+          def verify(item):
+              p,e=item
+              try:
+                  req=urllib.request.Request(base+urllib.parse.quote(p)+'?actuator='+commit[:7],headers={'Cache-Control':'no-cache','User-Agent':'Actuator-Deployment-Check'})
+                  with urllib.request.urlopen(req,timeout=40) as r:
+                      assert r.status==200
+                      if p.endswith('.mp4'):assert r.headers.get_content_type()=='video/mp4'
+                      blob=r.read()
+                  assert len(blob)==e['size']
+                  assert hashlib.sha1(('blob '+str(len(blob))+'\0').encode()+blob).hexdigest()==e['sha']
+                  return item,None
+              except Exception as err:return item,repr(err)
+          pending=list(files.items())+[('',new['index.html'])]
+          for attempt in range(5):
+              with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:results=list(pool.map(verify,pending))
+              failures=[(item,err) for item,err in results if err]
+              if not failures:break
+              print('Pending:',[(item[0],err) for item,err in failures])
+              pending=[item for item,err in failures]
+              if attempt<4:time.sleep(15)
+          assert not failures,'Live files did not match approved deployment'
+          class Videos(HTMLParser):
+              def __init__(self):super().__init__();self.videos=[];self.sources=[];self.ids=set()
+              def handle_starttag(self,tag,attrs):
+                  a=dict(attrs)
+                  if tag=='video':self.videos.append(a)
+                  if tag=='source':self.sources.append(a.get('src',''))
+                  if a.get('id'):self.ids.add(a['id'])
+          with urllib.request.urlopen(base+'projects/senior-design.html?actuator='+commit[:7]) as r:html=r.read().decode()
+          doc=Videos();doc.feed(html)
+          assert len(doc.videos)==4 and all('controls' in v and 'autoplay' not in v for v in doc.videos)
+          assert doc.sources[0].endswith('senior-position-control.mp4') and 'demonstrations' in doc.ids
+          assert sum(p.endswith('.mp4') for p in files)==12
+          summary={'deployment_commit':commit,'public_files_verified':len(files),'root_homepage_verified':True,'video_players_on_actuator_page':4,'total_original_videos':12,'position_control_first':True,'other_pages_unchanged':True,'public_url':base+'projects/senior-design.html#demonstrations'}
+          print('LIVE_VERIFIED: '+json.dumps(summary))
+          pathlib.Path(os.environ['GITHUB_STEP_SUMMARY']).write_text('## Live actuator-video deployment verified\n\n```json\n'+json.dumps(summary,indent=2)+'\n```\n')
+          PY
