@@ -1,0 +1,87 @@
+name: Import updated active-caster CAD
+on:
+  push:
+    branches: [update-active-caster-cad-20261012]
+    paths: [.github/workflows/import-active-caster-cad.yml]
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out staging branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: update-active-caster-cad-20261012
+      - name: Verify package and replace only approved files
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, http.cookiejar, io, json, pathlib, stat, subprocess, urllib.parse, urllib.request, zipfile
+          from html.parser import HTMLParser
+          expected_zip = 'c8d44552e9ce470bb3c0467b439bd7290be0e777f65ef94049228159e169824f'
+          files = {
+              'assets/images/active-caster-overview-v2.png': '5b9bd717d348c8b398b939b85924329c8d48f77dc066cadb65813900e66686d1',
+              'assets/images/active-caster-overview-v2.webp': '924d59251f2398f5cc1a387ffd9c20801eb469d8e2d33c7d40e49d393332042e',
+              'assets/images/active-caster-perspective-v2.png': 'd29f51d5d7dc91ac1d7a8bea4acdd20070e228b192671812ba4a0b77f2cadad2',
+              'assets/images/active-caster-perspective-v2.webp': '91677bab02216bdd5988fd6369443ee952bb3fa0ff18a353eb1ba0a164a150fd',
+              'index.html': 'dfb99561df763492102e94d30a90d107bd49914a81f1d52ded7c0a93e89a0276',
+              'research/active-spherical-caster.html': '446b50a52c66731b70c67f07a6e54d3215f6b60b42481e41daa329cd889762bf'
+          }
+          delete = ['assets/images/' + name for name in ('active-caster-perspective-original.png', 'active-caster-perspective.webp', 'active-caster-section-original.png', 'active-caster-section.webp')]
+          before = {'index.html': '365d645880013c7479fc0b912959af65d6f8d465', 'research/active-spherical-caster.html': '6b0231a7ac59ad340b83ba88af5d2f12e839f5e4'}
+          for p, sha in before.items():
+              b = pathlib.Path(p).read_bytes()
+              assert hashlib.sha1(('blob ' + str(len(b)) + '\0').encode() + b).hexdigest() == sha, 'Source changed: ' + p
+          for p in delete:
+              assert pathlib.Path(p).is_file(), 'Missing original: ' + p
+          opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+          url = 'https://drive.usercontent.google.com/download?id=1q-d_LCLmOUA8o9-H-FCjGgvq2rXrWEEL&export=download&confirm=t'
+          class Form(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.action = None; self.fields = {}
+              def handle_starttag(self, tag, attrs):
+                  a = dict(attrs)
+                  if tag == 'form' and a.get('id') == 'download-form': self.action = a.get('action')
+                  if tag == 'input' and a.get('type') == 'hidden' and a.get('name'): self.fields[a['name']] = a.get('value', '')
+          for attempt in range(3):
+              with opener.open(urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'}), timeout=60) as r:
+                  data = r.read(2_000_001)
+              assert len(data) <= 2_000_000, 'Unexpected transfer size'
+              if zipfile.is_zipfile(io.BytesIO(data)): break
+              form = Form(); form.feed(data.decode(errors='replace'))
+              assert form.action and urllib.parse.urlparse(form.action).hostname in ('drive.google.com', 'drive.usercontent.google.com'), 'Transfer not downloadable'
+              url = form.action + '?' + urllib.parse.urlencode(form.fields)
+          assert hashlib.sha256(data).hexdigest() == expected_zip, 'Package checksum mismatch'
+          with zipfile.ZipFile(io.BytesIO(data)) as archive:
+              assert len(archive.infolist()) == len(files) and set(archive.namelist()) == set(files)
+              payload = {}
+              for item in archive.infolist():
+                  assert not stat.S_ISLNK(item.external_attr >> 16)
+                  assert item.file_size < 1_000_000
+                  b = archive.read(item)
+                  assert hashlib.sha256(b).hexdigest() == files[item.filename], item.filename
+                  payload[item.filename] = b
+          for p, b in payload.items():
+              target = pathlib.Path(p); target.parent.mkdir(parents=True, exist_ok=True); target.write_bytes(b)
+          for p in delete: pathlib.Path(p).unlink()
+          old_names = [pathlib.Path(p).name for p in delete]
+          for p in pathlib.Path('.').rglob('*.html'):
+              assert not any(name in p.read_text() for name in old_names), 'Old image reference: ' + str(p)
+          assert len(list(pathlib.Path('assets/video').glob('*.mp4'))) == 12, 'Original project videos must remain'
+          assert 'quadrotor-vio-maze.webp' in pathlib.Path('index.html').read_text()
+          assert 'senior-position-control.mp4' in pathlib.Path('projects/senior-design.html').read_text()
+          subprocess.run(['git', 'add', '--', *files, *delete], check=True)
+          staged = set(subprocess.check_output(['git', 'diff', '--cached', '--name-only'], text=True).splitlines())
+          assert staged == set(files) | set(delete), 'Unexpected staged changes'
+          print('VERIFIED: 6 updated/new files, 4 superseded images removed, 12 original videos retained.')
+          PY
+      - name: Commit to staging branch
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Replace active-caster CAD images and homepage thumbnail'
+          git push origin HEAD:refs/heads/update-active-caster-cad-20261012
+          echo "Imported commit: $(git rev-parse HEAD)"
